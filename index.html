@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IELTS Mobile Vocab Arena</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-light: #e0e7ff;
+            --secondary: #0ea5e9;
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --card-bg: #ffffff;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--light);
+            color: var(--dark);
+            padding-bottom: 80px; /* Safe area for bottom navigation bar */
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, var(--primary), #3730a3);
+            color: white;
+            padding: 20px 16px;
+            text-align: center;
+            border-bottom-left-radius: var(--radius-lg);
+            border-bottom-right-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+        }
+
+        header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 6px;
+        }
+
+        header p {
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .accent-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 6px;
+            border-radius: var(--radius-sm);
+        }
+
+        .accent-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .accent-btn.active {
+            background: white;
+            color: var(--primary);
+        }
+
+        /* Bottom Pinned Navigation for Mobile Devices */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: var(--card-bg);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+            z-index: 1000;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: none;
+            border: none;
+            color: #64748b;
+            font-size: 0.75rem;
+            cursor: pointer;
+            flex: 1;
+            padding: 8px 0;
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .nav-item svg {
+            width: 22px;
+            height: 22px;
+            margin-bottom: 4px;
+            fill: currentColor;
+        }
+
+        /* Container & Tabs */
+        .container {
+            padding: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Module 1: Pocket Cards Custom Mobile Design */
+        .category-scroll {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 16px;
+            scrollbar-width: none;
+        }
+        .category-scroll::-webkit-scrollbar { display: none; }
+
+        .chip {
+            background: #e2e8f0;
+            color: var(--dark);
+            padding: 8px 16px;
+            border-radius: 20px;
+            white-space: nowrap;
+            font-size: 0.85rem;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .chip.active {
+            background: var(--primary);
+            color: white;
+        }
+
+        .mobile-card-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .vocab-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            box-shadow: var(--shadow);
+            border-left: 5px solid var(--primary);
+            position: relative;
+        }
+
+        .vocab-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .vocab-word {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--dark);
+        }
+
+        .vocab-ipa {
+            font-size: 0.9rem;
+            color: #64748b;
+            font-family: monospace;
+            margin-top: 2px;
+        }
+
+        .audio-btn {
+            background: var(--primary-light);
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: var(--primary);
+        }
+
+        .vocab-definition {
+            font-size: 0.9rem;
+            color: #475569;
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: var(--radius-sm);
+            margin: 10px 0;
+            line-height: 1.4;
+        }
+
+        .vocab-meta {
+            font-size: 0.85rem;
+            margin-top: 8px;
+        }
+
+        .vocab-meta strong {
+            color: var(--dark);
+        }
+
+        .vocab-sentence {
+            font-style: italic;
+            color: #475569;
+            border-left: 2px solid #cbd5e1;
+            padding-left: 8px;
+            margin-top: 4px;
+        }
+
+        /* Module 2: Taboo Mobile Design */
+        .game-setup, .game-play {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+
+        .scoreboard {
+            display: flex;
+            justify-content: space-between;
+            background: #f1f5f9;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            margin-bottom: 15px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .timer-bar-container {
+            background: #e2e8f0;
+            height: 8px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .timer-bar {
+            background: var(--warning);
+            height: 100%;
+            width: 100%;
+            transition: width 1s linear;
+        }
+
+        .taboo-word-box {
+            border: 3px solid var(--primary);
+            border-radius: var(--radius-md);
+            padding: 20px 10px;
+            margin-bottom: 20px;
+            background: linear-gradient(to bottom, #fff, #fafafa);
+        }
+
+        .target-word {
+            font-size: 1.75rem;
+            color: var(--primary);
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .taboo-definition-helper {
+            font-size: 0.85rem;
+            color: #475569;
+            background: var(--primary-light);
+            padding: 8px;
+            border-radius: var(--radius-sm);
+            margin: 10px auto;
+            max-width: 90%;
+        }
+
+        .taboo-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--danger);
+            font-weight: bold;
+            margin-top: 15px;
+            letter-spacing: 1px;
+        }
+
+        .taboo-list {
+            list-style: none;
+            margin-top: 5px;
+        }
+
+        .taboo-list li {
+            font-size: 1.15rem;
+            color: #334155;
+            font-weight: 600;
+            padding: 4px 0;
+            text-decoration: line-through rgba(239, 68, 68, 0.4);
+        }
+
+        .game-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .btn-action {
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            border: none;
+            font-weight: bold;
+            font-size: 0.95rem;
+            cursor: pointer;
+            color: white;
+        }
+
+        .btn-correct { background-color: var(--success); }
+        .btn-foul { background-color: var(--danger); }
+        .btn-skip { background-color: #64748b; grid-column: span 2; }
+
+        /* Module 3: Synonym Match Quest Mobile */
+        .quest-box {
+            background: var(--card-bg);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            box-shadow: var(--shadow);
+        }
+
+        .quest-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            color: #64748b;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .prompt-sentence {
+            font-size: 1.1rem;
+            line-height: 1.5;
+            color: var(--dark);
+            margin-bottom: 20px;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: var(--radius-sm);
+            border-left: 4px solid var(--secondary);
+        }
+
+        .highlight-basic {
+            background-color: #fef08a;
+            color: #854d0e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            border-bottom: 2px dashed #ca8a04;
+        }
+
+        .option-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            background: var(--light);
+            border: 2px solid #e2e8f0;
+            padding: 14px;
+            border-radius: var(--radius-sm);
+            text-align: left;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--dark);
+        }
+
+        .option-item:active {
+            transform: scale(0.98);
+        }
+
+        .option-item.correct {
+            background-color: #d1fae5;
+            border-color: var(--success);
+            color: #065f46;
+        }
+
+        .option-item.wrong {
+            background-color: #fee2e2;
+            border-color: var(--danger);
+            color: #991b1b;
+        }
+
+        .feedback-box {
+            margin-top: 15px;
+            padding: 12px;
+            border-radius: var(--radius-sm);
+            font-size: 0.9rem;
+            line-height: 1.4;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>IELTS Mobile Vocab Arena</h1>
+        <p>Dynamic Interactive Classroom Toolkit</p>
+        <div class="accent-controls">
+            <button class="accent-btn active" id="btn-uk" onclick="setAccent('en-GB')">UK Accent</button>
+            <button class="accent-btn" id="btn-us" onclick="setAccent('en-US')">US Accent</button>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- MODULE 1: POCKET CARDS -->
+        <div id="panel-cards" class="tab-panel active">
+            <div class="category-scroll">
+                <button class="chip active" onclick="filterCards('all', this)">All Words</button>
+                <button class="chip" onclick="filterCards('problems', this)">Problems & Solutions</button>
+                <button class="chip" onclick="filterCards('society', this)">Society & Change</button>
+                <button class="chip" onclick="filterCards('work', this)">Work & Tech</button>
+                <button class="chip" onclick="filterCards('environment', this)">Environment & Health</button>
+            </div>
+            <div class="mobile-card-grid" id="cards-container"></div>
+        </div>
+
+        <!-- MODULE 2: TABOO GAME -->
+        <div id="panel-taboo" class="tab-panel">
+            <div id="taboo-setup" class="game-setup">
+                <h3 style="margin-bottom: 10px;">IELTS Classroom Taboo</h3>
+                <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 15px;">Split your class into Team A and Team B. One student describes the word without using any forbidden terms!</p>
+                <button class="btn-block" onclick="startTabooGame()">Launch Game</button>
+            </div>
+
+            <div id="taboo-active" class="game-play" style="display: none;">
+                <div class="scoreboard">
+                    <span id="team-turn-label">Team A Turn</span>
+                    <span id="game-score-label">A: 0 | B: 0</span>
+                </div>
+                <div class="timer-bar-container">
+                    <div id="taboo-timer" class="timer-bar"></div>
+                </div>
+                <div class="taboo-word-box">
+                    <div class="target-word" id="taboo-target">EXACERBATE</div>
+                    <div class="taboo-definition-helper" id="taboo-definition">To make a bad situation or problem worse.</div>
+                    <div class="taboo-label">Forbidden Taboo Words:</div>
+                    <ul class="taboo-list" id="taboo-forbidden">
+                        <li>Worse</li>
+                        <li>Bad</li>
+                        <li>Problem</li>
+                    </ul>
+                </div>
+                <div class="game-controls">
+                    <button class="btn-action btn-correct" onclick="handleTabooOutcome('correct')">✓ Correct</button>
+                    <button class="btn-action btn-foul" onclick="handleTabooOutcome('foul')">⚠ Taboo Foul</button>
+                    <button class="btn-action btn-skip" onclick="handleTabooOutcome('skip')">Skip Word ➔</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODULE 3: SYNONYM MATCH QUEST -->
+        <div id="panel-quest" class="tab-panel">
+            <div class="quest-box">
+                <div class="quest-header">
+                    <span id="quest-score">Score: 0</span>
+                    <span id="quest-streak">Streak: 🔥 0</span>
+                </div>
+                <h3 style="margin-bottom: 10px; font-size: 1.1rem;">Upgrade the Paragraph Sentence</h3>
+                <p style="color: #64748b; font-size: 0.85rem; margin-bottom: 15px;">Identify the best Band 7.5+ alternative vocabulary word to replace the highlighted basic word.</p>
+                
+                <div class="prompt-sentence" id="quest-sentence">
+                    Loading next dynamic quest question...
+                </div>
+
+                <div class="option-list" id="quest-options"></div>
+                <div class="feedback-box" id="quest-feedback"></div>
+                <button class="btn-block" id="btn-next-quest" style="display:none;" onclick="generateQuest()">Next Question ➔</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Pinned Bottom Navigation Interface -->
+    <nav class="bottom-nav">
+        <button class="nav-item active" id="nav-cards" onclick="switchTab('cards')">
+            <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12z"/></svg>
+            Pocket Cards
+        </button>
+        <button class="nav-item" id="nav-taboo" onclick="switchTab('taboo')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Taboo Game
+        </button>
+        <button class="nav-item" id="nav-quest" onclick="switchTab('quest')">
+            <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.99L19.53 19H4.47L12 5.99zM13 16h-2v2h2v-2zm0-6h-2v4h2v-4z"/></svg>
+            Synonym Quest
+        </button>
+    </nav>
+
+    <script>
+        // Core Expanded 30-Word Dataset Mapping
+        const vocabularyData = [
+            { word: "Exacerbate", ipa: "/ɪɡˈzæs.ə.beɪt/", cat: "problems", def: "To make a bad situation or problem worse.", coll: "exacerbate the problem", sent: "Rapid urbanization has exacerbated traffic congestion.", taboo: ["Worse", "Bad", "Problem"], basic: "make worse" },
+            { word: "Mitigate", ipa: "/ˈmɪt.ɪ.ɡeɪt/", cat: "problems", def: "To make something less severe, serious, or painful.", coll: "mitigate the impact", sent: "Policies must be implemented to mitigate climate change.", taboo: ["Reduce", "Less", "Better"], basic: "reduce" },
+            { word: "Detrimental", ipa: "/ˌdet.rɪˈmen.təl/", cat: "problems", def: "Tending to cause clear harm or negative damage.", coll: "highly detrimental", sent: "Excessive screen time has a highly detrimental effect.", taboo: ["Harmful", "Bad", "Negative"], basic: "harmful" },
+            { word: "Hinder", ipa: "/ˈhɪn.dər/", cat: "problems", def: "To create obstacles resulting in delay or obstruction.", coll: "hinder economic progress", sent: "High tax rates can severely hinder business expansion.", taboo: ["Stop", "Slow", "Prevent"], basic: "stop" },
+            { word: "Viable", ipa: "/ˈvaɪ.ə.bəl/", cat: "problems", def: "Capable of working successfully or being feasible.", coll: "a viable alternative", sent: "Solar power is increasingly seen as a viable solution.", taboo: ["Possible", "Work", "Option"], basic: "possible" },
+            { word: "Prevalent", ipa: "/ˈprev.əl.ənt/", cat: "society", def: "Widespread or highly common in a particular area.", coll: "increasingly prevalent", sent: "Remote work models have become highly prevalent.", taboo: ["Common", "Everywhere", "Popular"], basic: "common" },
+            { word: "Profound", ipa: "/prəˈfaʊnd/", cat: "society", def: "Very great, intense, or deeply impactful.", coll: "profound cultural impact", sent: "The invention of smartphones had a profound impact.", taboo: ["Deep", "Big", "Impact"], basic: "deep" },
+            { word: "Disparity", ipa: "/dɪˈspær.ə.ti/", cat: "society", def: "A noticeable and unfair inequality or gap.", coll: "growing economic disparity", sent: "Wealth disparity remains a major social roadblock.", taboo: ["Difference", "Gap", "Inequality"], basic: "difference" },
+            { word: "Inevitable", ipa: "/ɪˈnev.ɪ.tə.bəl/", cat: "society", def: "Certain to happen and completely unavoidable.", coll: "an inevitable consequence", sent: "Cultural integration is an inevitable result of travel.", taboo: ["Unavoidable", "Certain", "Happen"], basic: "unavoidable" },
+            { word: "Catalyst", ipa: "/ˈkæt.əl.ɪst/", cat: "society", def: "An event or agent that precipitates structural change.", coll: "catalyst for change", sent: "Higher education acts as a catalyst for social mobility.", taboo: ["Cause", "Start", "Change"], basic: "cause" },
+            { word: "Foster", ipa: "/ˈfɒs.tər/", cat: "work", def: "To encourage, protect, or nurture development.", coll: "foster team innovation", sent: "Interactive tasks foster stronger class relationships.", taboo: ["Encourage", "Grow", "Help"], basic: "encourage" },
+            { word: "Obsolete", ipa: "/ˈɒb.səl.iːt/", cat: "work", def: "No longer produced, useful, or out-of-date.", coll: "render skills obsolete", sent: "Automation may render manufacturing roles obsolete.", taboo: ["Old", "Outdated", "Use"], basic: "outdated" },
+            { word: "Lucrative", ipa: "/ˈluː.krə.tɪv/", cat: "work", def: "Producing a great deal of financial profit.", coll: "highly lucrative career", sent: "Software engineering remains a highly lucrative field.", taboo: ["Money", "Profit", "Rich"], basic: "profitable" },
+            { word: "Incentive", ipa: "/ɪnˈsen.tɪv/", cat: "work", def: "A motivating payment, reward, or core encouragement.", coll: "strong financial incentive", sent: "Subsidies provide an incentive to adopt green tech.", taboo: ["Motivate", "Reward", "Reason"], basic: "motivation" },
+            { word: "Implement", ipa: "/ˈɪm.plɪ.ment/", cat: "work", def: "To officially put a decision or plan into execution.", coll: "implement structural adjustments", sent: "Schools must implement stricter rules.", taboo: ["Do", "Start", "Action"], basic: "put into practice" },
+            { word: "Sustainable", ipa: "/səˈsteɪ.nə.bəl/", cat: "environment", def: "Able to be maintained at a certain rate without depletion.", coll: "sustainable development goals", sent: "Cities must invest in sustainable transport infrastructure.", taboo: ["Green", "Nature", "Keep"], basic: "long-lasting" },
+            { word: "Biodegradable", ipa: "/ˌbaɪ.əʊ.dɪˈɡreɪ.də.bəl/", cat: "environment", def: "Capable of being decomposed naturally by bacteria.", coll: "biodegradable materials", sent: "Switching to biodegradable packaging reduces landfill loads.", taboo: ["Decompose", "Plastic", "Natural"], basic: "decayable" },
+            { word: "Deplete", ipa: "/dɪˈpliːt/", cat: "environment", def: "To severely reduce or exhaust resources over time.", coll: "deplete natural resources", sent: "Overfishing continues to deplete marine life stocks globally.", taboo: ["Empty", "Use up", "Finish"], basic: "run out of" },
+            { word: "Sedentary", ipa: "/ˈsed.ən.tər.i/", cat: "environment", def: "Spending too much time seated or inactive.", coll: "sedentary lifestyle risks", sent: "Office desk environments encourage dangerous sedentary habits.", taboo: ["Sitting", "Lazy", "Inactive"], basic: "inactive" },
+            { word: "Equitable", ipa: "/ˈek.wɪ.tə.bəl/", cat: "society", def: "Fair, impartial, and just for all parties involved.", coll: "equitable distribution of wealth", sent: "A progressive tax structure encourages an equitable society.", taboo: ["Fair", "Equal", "Just"], basic: "fair" }
+        ];
+
+        let currentAccent = 'en-GB';
+        let tabooState = { active: false, timer: null, timeLeft: 60, scoreA: 0, scoreB: 0, turn: 'A', pool: [], index: 0 };
+        let questState = { score: 0, streak: 0, currentItem: null, answerSelected: false };
+
+        // Core App Routing Navigation System
+        function switchTab(targetTab) {
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(`panel-${targetTab}`).classList.add('active');
+            document.getElementById(`nav-${targetTab}`).classList.add('active');
+
+            if(targetTab === 'quest' && !questState.currentItem) generateQuest();
+        }
+
+        function setAccent(accentStr) {
+            currentAccent = accentStr;
+            document.getElementById('btn-uk').classList.toggle('active', accentStr === 'en-GB');
+            document.getElementById('btn-us').classList.toggle('active', accentStr === 'en-US');
+        }
+
+        // Web Speech Synthesizer Integration
+        function playPronunciation(wordText) {
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel(); // Terminate existing processes
+                let utterance = new SpeechSynthesisUtterance(wordText);
+                utterance.lang = currentAccent;
+                utterance.rate = 0.85; // Slightly slower for language learners
+                window.speechSynthesis.speak(utterance);
+            } else {
+                alert("Speech Synthesis not fully supported on this device's browser native stack.");
+            }
+        }
+
+        // Module 1: Pocket Card Render Pipeline
+        function renderPocketCards(items) {
+            const container = document.getElementById('cards-container');
+            container.innerHTML = '';
+            items.forEach(v => {
+                container.innerHTML += `
+                    <div class="vocab-card">
+                        <div class="vocab-header">
+                            <div>
+                                <div class="vocab-word">${v.word}</div>
+                                <div class="vocab-ipa">${v.ipa}</div>
+                            </div>
+                            <button class="audio-btn" onclick="playPronunciation('${v.word}')">
+                                <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                            </button>
+                        </div>
+                        <div class="vocab-definition">${v.def}</div>
+                        <div class="vocab-meta"><strong>Collocation:</strong> ${v.coll}</div>
+                        <div class="vocab-meta"><strong>IELTS Context:</strong> <div class="vocab-sentence">${v.sent}</div></div>
+                    </div>
+                `;
+            });
+        }
+
+        function filterCards(cat, element) {
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            element.classList.add('active');
+            if(cat === 'all') renderPocketCards(vocabularyData);
+            else renderPocketCards(vocabularyData.filter(v => v.cat === cat));
+        }
+
+        // Module 2: Interactive Mobile Taboo Engine
+        function startTabooGame() {
+            document.getElementById('taboo-setup').style.display = 'none';
+            document.getElementById('taboo-active').style.display = 'block';
+            tabooState.scoreA = 0;
+            tabooState.scoreB = 0;
+            tabooState.turn = 'A';
+            tabooState.pool = [...vocabularyData].sort(() => 0.5 - Math.random());
+            tabooState.index = 0;
+            nextTabooTurn();
+        }
+
+        function nextTabooTurn() {
+            clearInterval(tabooState.timer);
+            document.getElementById('team-turn-label').innerText = `Team ${tabooState.turn} Turn`;
+            document.getElementById('game-score-label').innerText = `A: ${tabooState.scoreA} | B: ${tabooState.scoreB}`;
+            
+            if(tabooState.index >= tabooState.pool.length) {
+                tabooState.pool = [...vocabularyData].sort(() => 0.5 - Math.random());
+                tabooState.index = 0;
+            }
+
+            let wordObj = tabooState.pool[tabooState.index];
+            document.getElementById('taboo-target').innerText = wordObj.word;
+            document.getElementById('taboo-definition').innerText = wordObj.def;
+            
+            const listEl = document.getElementById('taboo-forbidden');
+            listEl.innerHTML = '';
+            wordObj.taboo.forEach(t => listEl.innerHTML += `<li>${t}</li>`);
+
+            tabooState.timeLeft = 60;
+            const timerBar = document.getElementById('taboo-timer');
+            timerBar.style.width = '100%';
+
+            tabooState.timer = setInterval(() => {
+                tabooState.timeLeft--;
+                timerBar.style.width = `${(tabooState.timeLeft / 60) * 100}%`;
+                if(tabooState.timeLeft <= 0) {
+                    clearInterval(tabooState.timer);
+                    tabooState.turn = tabooState.turn === 'A' ? 'B' : 'A';
+                    alert("Time up! Passing turn to next team.");
+                    nextTabooTurn();
+                }
+            }, 1000);
+        }
+
+        function handleTabooOutcome(status) {
+            if(status === 'correct') {
+                if(tabooState.turn === 'A') tabooState.scoreA++; else tabooState.scoreB++;
+            } else if(status === 'foul') {
+                if(tabooState.turn === 'A') tabooState.scoreB++; else tabooState.scoreA++;
+                alert("Taboo phrase restriction violation! Point awarded to opposing team.");
+            }
+            tabooState.index++;
+            tabooState.turn = tabooState.turn === 'A' ? 'B' : 'A';
+            nextTabooTurn();
+        }
+
+        // Module 3: Procedural Synonym Quest Logic
+        function generateQuest() {
+            questState.answerSelected = false;
+            document.getElementById('btn-next-quest').style.display = 'none';
+            document.getElementById('quest-feedback').style.display = 'none';
+
+            // Select random item
+            let target = vocabularyData[Math.floor(Math.random() * vocabularyData.length)];
+            questState.currentItem = target;
+
+            // Generate contextual prompt
+            let updatedSentence = target.sent.replace(new RegExp(target.word, 'i'), `<span class="highlight-basic">${target.basic}</span>`);
+            document.getElementById('quest-sentence').innerHTML = `"... ${updatedSentence} ..."`;
+
+            // Setup distractor options
+            let options = [target.word];
+            while(options.length < 3) {
+                let randomDistractor = vocabularyData[Math.floor(Math.random() * vocabularyData.length)].word;
+                if(!options.includes(randomDistractor)) options.push(randomDistractor);
+            }
+            options.sort(() => 0.5 - Math.random());
+
+            const listEl = document.getElementById('quest-options');
+            listEl.innerHTML = '';
+            options.forEach(opt => {
+                listEl.innerHTML += `<button class="option-item" onclick="verifyQuestAnswer('${opt}', this)">${opt}</button>`;
+            });
+        }
+
+        function verifyQuestAnswer(selectedWord, element) {
+            if(questState.answerSelected) return;
+            questState.answerSelected = true;
+
+            const isCorrect = selectedWord === questState.currentItem.word;
+            if(isCorrect) {
+                element.classList.add('correct');
+                questState.score += 10;
+                questState.streak++;
+                showQuestFeedback(true, `Excellent choice! "${questState.currentItem.word}" scales this expression perfectly to a Band 7.5+ structural level.`);
+            } else {
+                element.classList.add('wrong');
+                questState.streak = 0;
+                showQuestFeedback(false, `Not quite. The standard upgrade path for "${questState.currentItem.basic}" in this specific context is "${questState.currentItem.word}".`);
+                
+                // Highlight the correct alternative
+                document.querySelectorAll('.option-item').forEach(btn => {
+                    if(btn.innerText === questState.currentItem.word) btn.classList.add('correct');
+                });
+            }
+
+            document.getElementById('quest-score').innerText = `Score: ${questState.score}`;
+            document.getElementById('quest-streak').innerText = `Streak: 🔥 ${questState.streak}`;
+            document.getElementById('btn-next-quest').style.display = 'block';
+        }
+
+        function showQuestFeedback(isSuccessful, messageText) {
+            const fb = document.getElementById('quest-feedback');
+            fb.style.display = 'block';
+            fb.innerText = messageText;
+            fb.style.backgroundColor = isSuccessful ? '#d1fae5' : '#fee2e2';
+            fb.style.color = isSuccessful ? '#065f46' : '#991b1b';
+        }
+
+        // Boot Init Hook
+        window.onload = () => {
+            renderPocketCards(vocabularyData);
+        };
+    </script>
+</body>
+</html>
